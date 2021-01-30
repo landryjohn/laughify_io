@@ -2,21 +2,20 @@ from app import app
 from bs4 import BeautifulSoup
 from moviepy.editor import * 
 import requests 
-from flask import request, send_from_directory
-from twilio.twiml.messaging_response import MessagingResponse
+from flask import request, jsonify
+# from twilio.twiml.messaging_response import MessagingResponse
 
-
-@app.route("/random_joke", methods=['POST'])
+# endpoint to get a joke /random_joke
+@app.route("/random_joke", methods=["POST", "GET"])
 def laughy():
     incoming_msg = request.values.get("Body", "").lower()
-    response = MessagingResponse()
-    message = response.message()
     URL = "https://lesjoiesducode.fr/random"
+    response = {}
 
+    # trigger on the command "combi"
     if "combi" in incoming_msg :
 
         res = requests.get(URL)
-        response = ""
         if res.ok :
             soup = BeautifulSoup(res.content, "html.parser")
             title = soup.select_one('h1[class="blog-post-title single-blog-post-title"]').text
@@ -28,21 +27,20 @@ def laughy():
                     for chunk in r.iter_content(chunk_size = 1024*1024):
                         if chunk:
                             video_file.write(chunk)
-                            clip = VideoFileClip("app/video.webm").write_gif("app/video.gif")
-                message.body(f"{title}")
-                message.media("https://0dd6df9e3a5c.ngrok.io/app/video.gif")
+                
+                clip = VideoFileClip("app/video.webm").write_gif("app/video.gif")
+                response["title"] = title
+                response["video"] = video_url
+                response["error"] = ""
             else :
-               message.body("une erreur s'est produite :(") 
+               response["error"] = "une erreur s'est produite :("
             
         else :
-            message.body("une erreur s'est produite :(")
+            response["error"] = "une erreur s'est produite :("
 
     elif "help" in incoming_msg :
-        message.body("Pour avoir une blague amusante demande à combi en tapant la commande *combi*. Les blagues en résultat seront du domaine du dev logiciel. Have Fun ! 😂 @d41k1")
+        response["error"] = "Pour avoir une blague amusante demande à combi en tapant la commande *combi*. Les blagues en résultat seront du domaine du dev logiciel. Have Fun ! 😂 @d41k1"
     else :
-        message.body("Commande non reconnnue. Tape *help* pour en savoir plus")
+        response["error"] = "Commande non reconnnue. Envoyer *help* pour en savoir plus"
     
-    
-
-    s
-    return "ok"
+    return jsonify(response)
