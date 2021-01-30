@@ -6,9 +6,10 @@ from flask import request, jsonify
 # from twilio.twiml.messaging_response import MessagingResponse
 
 # endpoint to get a joke /random_joke
-@app.route("/random_joke", methods=["POST", "GET"])
-def laughy():
-    incoming_msg = request.values.get("Body", "").lower()
+@app.route("/random_joke/<command>", methods=["GET"])
+def laughy(command):
+    # incoming_msg = request.values.get("Body", "").lower()
+    incoming_msg = command 
     URL = "https://lesjoiesducode.fr/random"
     response = {}
 
